@@ -36,7 +36,7 @@ best_acc = 0  # Переменная лучшей точности
 start_epoch = 0  # Переменная эпохи
 
 # Загрузка данных
-print('==> Preparing data..')
+print('Подготовка данных..')
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
