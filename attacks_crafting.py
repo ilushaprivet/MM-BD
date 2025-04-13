@@ -1,4 +1,4 @@
-
+# Импорт библиотек
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -21,6 +21,8 @@ import numpy as np
 
 from src.utils import pattern_craft, mask_craft, embed_backdoor
 
+# Аргументы командной строки
+
 parser = argparse.ArgumentParser(description='PyTorch Backdoor Attack Crafting')
 parser.add_argument('--out_dir', default='attack4',
                     type=str, help='output direction')
@@ -34,20 +36,22 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 random.seed()
 out_dir = args.out_dir
 
+# Переменные атакованных изображений и меток
 
 test_images_attacks = None
 test_labels_attacks = None
 train_images_attacks = None
 train_labels_attacks = None
 
-# Параметры атаки
+# Параметры атаки - число атакуемых классов и изображений
 
 NC = 10
 
 NUM_OF_ATTACKS = 500
 
-# Загрузка данных
-print('==> Preparing data..')
+# Загрузка данных из набора
+
+print('Подготовка данных...')
 transform_train = transforms.Compose([
         transforms.ToTensor(),
     ])
@@ -59,8 +63,13 @@ transform_test = transforms.Compose([
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
+# Паттерн и маска проводимых атак
+
 pattern = pattern_craft(trainset.__getitem__(0)[0].size())
 mask = mask_craft(pattern)
+
+# Перебор всех классов, внедрение случайного числа бэкдоров в отдельно взятый класс (SC - истинный класс изображения, TC - целевой)
+
 for SC in range(10):
     TC = (SC + 1)%10
     # Создание обучающих изображений с бэкдорами
@@ -96,7 +105,8 @@ torch.save(test_attacks, './' + out_dir + '/test_attacks')
 torch.save(ind_train, './' + out_dir + '/ind_train')
 torch.save(pattern, './' + out_dir + '/pattern')
 
+# Запись информации об атаке
 
 f = open('./' + out_dir + '/attack_info.txt', "w")
-f.write('source class: ' + str(SC) + '. target class: ' + str(TC))
+f.write('Изначальный класс: ' + str(SC) + '. Новый класс: ' + str(TC))
 f.close()
