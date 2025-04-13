@@ -1,20 +1,23 @@
+# Импорт библиотек
 from __future__ import absolute_import
 from __future__ import print_function
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
+
 import torchvision
 import torchvision.transforms as transforms
+
 import os
 import argparse
 import numpy as np
 from src.resnet import ResNet18
 import copy
 
-
-
+# Парсер аргументов командной строки
 parser = argparse.ArgumentParser(description='UnivBM')
 parser.add_argument('--model_dir', default='model0', help='model path')
 parser.add_argument('--attack_dir', default='attack0', help='attack path')
@@ -23,9 +26,7 @@ args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-
-
-
+# Класс-оболочка для целевой модели
 class CleanNet(nn.Module):
 
     def __init__(self):
@@ -35,14 +36,16 @@ class CleanNet(nn.Module):
         model.load_state_dict(torch.load('./'+args.model_dir+'/model.pth'))
         model.eval()
         self.model = model
+        # Ограничивающие коэффициенты для активаций после определенных слоев
         self.clamp_w1 = torch.ones([64, 1, 1]).to(device) + 7.0
         self.clamp_w2 = torch.ones([64, 1, 1]).to(device) + 7.0
         self.clamp_w3 = torch.ones([128, 1, 1]).to(device) + 7.0
         self.clamp_w1.requires_grad = True
         self.clamp_w2.requires_grad = True
         self.clamp_w3.requires_grad = True
+    
+    
     def forward(self, x):
-
         out = F.relu(self.model.bn1(self.model.conv1(x)))
         out = torch.min(out, self.clamp_w1)
         out = self.model.layer1(out)
@@ -56,10 +59,10 @@ class CleanNet(nn.Module):
         out = self.model.linear(out)
         return out
 
-
 network = CleanNet()
 network.to(device)
 
+# Подготовка данных
 transform_test = transforms.Compose([
     transforms.ToTensor(),
     #transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
@@ -80,17 +83,14 @@ for i in range(trainset.__len__()):
         correct_idx.append(i)
 
 trainset = torch.utils.data.Subset(trainset, correct_idx)
-
-
-
-
 trainloader = torch.utils.data.DataLoader(
     trainset, batch_size=200, shuffle=True, num_workers=2)
 
+# Обучение ограничителей
 optimizer = torch.optim.Adam( [network.clamp_w1, network.clamp_w2, network.clamp_w3], lr=0.1)
 criterion = nn.CrossEntropyLoss()
 mse = nn.MSELoss()
-c = 0.5
+c = 0.5 # Динамический кэффициент обучения
 a = 1.2
 for epoch in range(50):
     correct = 0
@@ -100,8 +100,8 @@ for epoch in range(50):
         images, labels = images.to(device), labels.to(device)
         ref_out = network.model(images)
         outputs = network(images)
-        loss1 = mse(outputs, ref_out)
-        loss2 = torch.norm(network.clamp_w1) \
+        loss1 = mse(outputs, ref_out) # Функция потерь между выходами оригинальной и модифицированной моделями (сохраняет поведение на чистых данных)
+        loss2 = torch.norm(network.clamp_w1) \ # Регуляризация на нормы ограничивающих коэффициентов (минимизирует ограничители = уменьшение ошибки)
                 + torch.norm(network.clamp_w2) \
                 + torch.norm(network.clamp_w3)
         #print(network.clamp_w1)
@@ -113,22 +113,17 @@ for epoch in range(50):
         correct += predicted.eq(labels).sum().item()
 
     acc = 100. * correct / total
+
+    # Адаптивный механизм обучения
     if epoch > 10 and epoch % 10 == 0:
         if acc >= 95:
             c *= a
         else:
             c /= a
 
-
-    #print('training acc rate: %.3f' % acc)
-
-
-
+    #print('Точность на обучении: %.3f' % acc)
 
 print('c: ' + str(c))
-
-
-
 
 print(args.model_dir)
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
@@ -136,6 +131,8 @@ all_ind = []
 for s in range(10):
     ind = [i for i, label in enumerate(testset.targets) if label == s]
     all_ind += ind[50:]
+
+# Тестирование на чистых данных
 testset = torch.utils.data.Subset(testset, all_ind)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
 
@@ -152,21 +149,19 @@ with torch.no_grad():
 acc = 100.*correct/total
 print('Test ACC: %.3f' % acc)
 
-
-
-
+# Тестирование на атакованных данных
 test_attacks = torch.load('./'+args.attack_dir + '/test_attacks')
 test_images_attacks = test_attacks['image']
 test_labels_attacks = test_attacks['label']
 '''
-# Normalize backdoor test images
+# Нормализация изображений с бэкдорами
 for i in range(len(test_images_attacks)):
         est_images_attacks[i] = transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))(test_images_attacks[i])
 '''
 testset_attacks = torch.utils.data.TensorDataset(test_images_attacks, test_labels_attacks)
 attackloader = torch.utils.data.DataLoader(testset_attacks, batch_size=100, shuffle=False, num_workers=2)
 
-# Evaluate attack success rate
+# Оценка успешности атаки
 correct = 0
 total = 0
 corr = 0
@@ -180,6 +175,6 @@ with torch.no_grad():
         #corr += predicted.eq(targets+1).sum().item()
 
 acc = 100.*correct/total
-print('Attack success rate: %.3f' % acc)
+print('Точность после проведения атаки: %.3f' % acc)
 
 
