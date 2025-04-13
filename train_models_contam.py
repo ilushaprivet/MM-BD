@@ -69,7 +69,7 @@ for i in range(len(test_images_attacks)):
 '''
 testset_attacks = torch.utils.data.TensorDataset(test_images_attacks, test_labels_attacks)
 
-# Poison the training set
+# Внедрение бэкдоров
 image_dtype = trainset.data.dtype
 train_images_attacks = np.rint(np.transpose(train_images_attacks.numpy()*255, [0, 2, 3, 1])).astype(image_dtype)
 trainset.data = np.concatenate((trainset.data, train_images_attacks))
