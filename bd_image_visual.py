@@ -1,3 +1,5 @@
+# Импорт библиотек
+
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -20,9 +22,14 @@ import random
 import sys
 import numpy as np
 
+# Проверка наличия директории
+
 if not os.path.isdir('attack1'):
-    print ('Attack images not found, please craft attack images first!')
+    print ('Изображения не найдены. Требуется создание тестовых образцов.')
     sys.exit(0)
+
+# Загрузка данных
+
 train_attacks = torch.load('./example/train_attacks')
 train_images_attacks = train_attacks['image']
 train_labels_attacks = train_attacks['label']
@@ -35,6 +42,9 @@ image = image.numpy()
 image = np.transpose(image, [1, 2, 0])
 plt.imshow(image)
 plt.show()
+
+# Сохранение изображений
+
 image = Image.fromarray(np.uint8(image*255))
 pattern = pattern.numpy()
 pattern = np.transpose(pattern, [1, 2, 0])
