@@ -63,7 +63,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False,
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
-# Создания экземпляра модели
+# Создание экземпляра модели
 print('Построение модели...')
 net = ResNet18()
 net.to(device)
@@ -90,13 +90,13 @@ def lr_scheduler(epoch):
         lr *= 1e-2
     elif epoch > 60:
         lr *= 1e-1
-    print('Learning rate: ', lr)
+    print('Скорость обучения: ', lr)
 
     return lr
 
 # Обучение модели
 def train(epoch):
-    print('\nEpoch: %d' % epoch)
+    print('\nЭпоха: %d' % epoch)
     net.train()
     train_loss = 0
     correct = 0
