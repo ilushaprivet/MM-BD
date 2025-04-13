@@ -1,3 +1,4 @@
+# Импорт библиотек
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -23,7 +24,7 @@ import numpy as np
 
 from src.resnet import ResNet18
 
-
+# Парсер аргументов командной строки
 parser = argparse.ArgumentParser(description='UnivBD method')
 parser.add_argument('--model_dir', default='model1', help='model path')
 #parser.add_argument('--data_path', '-d', required=True, help='data path')
@@ -33,15 +34,12 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 random.seed()
 
-# Detection parameters
+# Параметры обнаружения (число классов, итераций оптимизации и образцов)
 NC = 10
-NI = 150
-PI = 0.9
 NSTEP = 300
-TC = 6
 batch_size = 20
 
-# Load model
+# Загрузка модели
 model = ResNet18()
 model = model.to(device)
 criterion = nn.CrossEntropyLoss()
@@ -53,17 +51,15 @@ criterion = nn.CrossEntropyLoss()
 model.load_state_dict(torch.load('./' + args.model_dir + '/model.pth'))
 model.eval()
 
-
-
+# Механизм уменьшения скорости обучения по мере обучения
 def lr_scheduler(iter_idx):
     lr = 1e-2
-
-
     return lr
 
 res = []
 for t in range(10):
 
+    # Генерация, оптимизация случайных изображений
     images = torch.rand([30, 3, 32, 32]).to(device)
     images.requires_grad = True
 
@@ -101,11 +97,12 @@ ind_max = np.argmax(stats)
 r_eval = np.amax(stats)
 r_null = np.delete(stats, ind_max)
 
+# Статистический анализ pv
 shape, loc, scale = gamma.fit(r_null)
 pv = 1 - pow(gamma.cdf(r_eval, a=shape, loc=loc, scale=scale), len(r_null)+1)
 print(pv)
 print(args.model_dir)
 if pv > 0.05:
-    print('No Attack!')
+    print('Атака не обнаружена')
 else:
-    print('There is attack with target class {}'.format(np.argmax(stats)))
+    print('Обнаружена атака в целевом классе: {}'.format(np.argmax(stats)))
