@@ -1,5 +1,4 @@
-
-
+# Импорт библиотек
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -21,21 +20,22 @@ import sys
 from src.mlp import vgg16_bn
 from src.resnet import ResNet18
 
+# Парсер аргументов командной строки
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training (with backdoor)')
 parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
 parser.add_argument('--attack_dir', default='attack4',
-                    type=str, help='output direction')
+                    type=str, help='output')
 parser.add_argument('--model_dir', default='model4',
-                    type=str, help='model direction')
+                    type=str, help='model')
 
 args = parser.parse_args()
 attack_dir = args.attack_dir
 model_dir = args.model_dir
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-best_acc = 0  # best test accuracy
-start_epoch = 0  # start from epoch 0 or last checkpoint epoch
+best_acc = 0  # Переменная лучшей точности
+start_epoch = 0  # Переменная эпохи
 
-# Data
+# Загрузка данных
 print('==> Preparing data..')
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -52,9 +52,9 @@ transform_test = transforms.Compose([
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
-# Load in attack data
+# Загрузка данных бэкдоров
 if not os.path.isdir(attack_dir):
-    print ('Attack images not found, please craft attack images first!')
+    print ('Атакованные изображения не найдены')
     sys.exit(0)
 train_attacks = torch.load('./' + attack_dir + '/train_attacks')
 train_images_attacks = train_attacks['image']
@@ -63,7 +63,7 @@ test_attacks = torch.load('./' + attack_dir + '/test_attacks')
 test_images_attacks = test_attacks['image']
 test_labels_attacks = test_attacks['label']
 '''
-# Normalize backdoor test images
+# Нормализация тестовых атакованных изображений
 for i in range(len(test_images_attacks)):
     test_images_attacks[i] = transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))(test_images_attacks[i])
 '''
@@ -78,14 +78,14 @@ ind_train = torch.load('./' + attack_dir + '/ind_train')
 trainset.data = np.delete(trainset.data, ind_train, axis=0)
 trainset.targets = np.delete(trainset.targets, ind_train, axis=0)
 
-# Load in the datasets
+# Загрузка наборов данных
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
 attackloader = torch.utils.data.DataLoader(testset_attacks, batch_size=100, shuffle=False, num_workers=2)
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
-# Model
-print('==> Building model..')
+# Построение модели
+print('Построение модели..')
 net = ResNet18()
 net.to(device)
 '''
@@ -100,6 +100,7 @@ criterion = nn.CrossEntropyLoss()
 # Adam optimizer
 #optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate)
 
+# Механизм уменьшения скорости обучения по ходу обучения
 def lr_scheduler(epoch):
     lr = 1e-3
     if epoch > 90:
@@ -108,12 +109,13 @@ def lr_scheduler(epoch):
         lr *= 1e-2
     elif epoch > 60:
         lr *= 1e-1
-    print('Learning rate: ', lr)
+    print('Скорость обучения: ', lr)
 
     return lr
 
+# Обучение модели
 def train(epoch):
-    print('\nEpoch: %d' % epoch)
+    print('\nЭпоха: %d' % epoch)
     net.train()
     train_loss = 0
     correct = 0
@@ -133,11 +135,11 @@ def train(epoch):
         correct += predicted.eq(targets).sum().item()
 
     acc = 100. * correct / total
-    print('Train ACC: %.3f' % acc)
+    print('Точность при обучении: %.3f' % acc)
 
     return net
 
-
+# Оценка модели
 def test(epoch):
     global best_acc
     net.eval()
@@ -158,9 +160,9 @@ def test(epoch):
             correct += predicted.eq(targets).sum().item()
 
     acc = 100. * correct / total
-    print('Test ACC: %.3f' % acc)
+    print('Точность при тестировании: %.3f' % acc)
 
-
+# Оценка успешности атаки
 def test_attack(epoch):
     net.eval()
     correct = 0
@@ -177,7 +179,7 @@ def test_attack(epoch):
             correct += predicted.eq(targets).sum().item()
 
     acc = 100. * correct / total
-    print('Attack success rate: %.3f' % acc)
+    print('Точность при атаке: %.3f' % acc)
 
 
 for epoch in range(start_epoch, start_epoch+50):
@@ -185,7 +187,7 @@ for epoch in range(start_epoch, start_epoch+50):
     test(epoch)
     test_attack(epoch)
 
-    # Save model
+    # Сохранение модели
     if not os.path.isdir(model_dir):
         os.mkdir(model_dir)
     torch.save(model.state_dict(), './'+model_dir + '/model.pth')
