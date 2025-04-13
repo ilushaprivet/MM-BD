@@ -39,13 +39,14 @@ test_images_attacks = None
 test_labels_attacks = None
 train_images_attacks = None
 train_labels_attacks = None
-# Attack parameters
+
+# Параметры атаки
 
 NC = 10
 
 NUM_OF_ATTACKS = 500
 
-# Load raw data
+# Загрузка данных
 print('==> Preparing data..')
 transform_train = transforms.Compose([
         transforms.ToTensor(),
@@ -62,7 +63,7 @@ pattern = pattern_craft(trainset.__getitem__(0)[0].size())
 mask = mask_craft(pattern)
 for SC in range(10):
     TC = (SC + 1)%10
-    # Crafting training backdoor images
+    # Создание обучающих изображений с бэкдорами
     ind_train = [i for i, label in enumerate(trainset.targets) if label==SC]
     ind_train = np.random.choice(ind_train, NUM_OF_ATTACKS, False)
     for i in ind_train:
@@ -73,7 +74,7 @@ for SC in range(10):
             train_images_attacks = embed_backdoor(trainset.__getitem__(i)[0], pattern, mask).unsqueeze(0)
             train_labels_attacks = torch.tensor([TC], dtype=torch.long)
 
-    # Crafting test backdoor images
+    # Создание тестовых изображений с бэкдорами
     ind_test = [i for i, label in enumerate(testset.targets) if label==SC]
 
     for i in ind_test:
@@ -84,7 +85,7 @@ for SC in range(10):
             test_images_attacks = embed_backdoor(testset.__getitem__(i)[0], pattern, mask).unsqueeze(0)
             test_labels_attacks = torch.tensor([TC], dtype=torch.long)
 
-# Create attack dir and save attack images
+# Сохранение образцов в папку
 if not os.path.isdir(out_dir):
     os.mkdir(out_dir)
 train_attacks = {'image': train_images_attacks, 'label': train_labels_attacks}
