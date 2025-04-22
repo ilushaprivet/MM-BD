@@ -1,15 +1,4 @@
-# MM-BD: Post-Training Detection of Backdoor Attacks with Arbitrary Backdoor Pattern Types Using a Maximum Margin Statistic
-
-This is the implementation of the IEEE S&P 2024 paper: MM-BD: Post-Training Detection of Backdoor Attacks with Arbitrary Backdoor Pattern Types Using a Maximum Margin Statistic
-
-The mitigation method was the second place at the first IEEE Trojan Removal Competition (https://www.trojan-removal.com/?page_id=2)
-
-This repository includes:
-- Training code for the clean model and attacked model.
-- MM-BD backdoor detection code.
-- MM-BM backdoor mitigation code.
-
-
+# Методика обнаружения/устранения бэкдоров в моделях глубокого обучения на основе анализа максимальных отступов классов
 
 ## Requirements
 Ubuntu 20.04
