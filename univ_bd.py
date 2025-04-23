@@ -36,8 +36,8 @@ random.seed()
 
 # Параметры обнаружения (число классов, итераций оптимизации и образцов)
 NC = 10
-NSTEP = 300
-batch_size = 20
+NSTEP = 1000
+batch_size = 100
 
 # Загрузка модели
 model = ResNet18()
@@ -55,6 +55,10 @@ model.eval()
 def lr_scheduler(iter_idx):
     lr = 1e-2
     return lr
+    # initial_lr = 1e-2
+    # decay_rate = 0.1
+    # lr = initial_lr * (decay_rate ** (iter_idx // decay_steps))
+    # return max (lr, 1e-5)
 
 res = []
 for t in range(10):
@@ -66,9 +70,10 @@ for t in range(10):
     last_loss = 1000
     labels = t * torch.ones((len(images),), dtype=torch.long).to(device)
     onehot_label = F.one_hot(labels, num_classes=NC)
+    #loss_history = []
     for iter_idx in range(NSTEP):
 
-        optimizer = torch.optim.SGD([images], lr=lr_scheduler(iter_idx), momentum=0.2)
+        optimizer = torch.optim.SGD([images], lr=lr_scheduler(iter_idx), momentum=0.2) # momentum=0.9 ?
         optimizer.zero_grad()
         outputs = model(torch.clamp(images, min=0, max=1))
 
@@ -76,6 +81,9 @@ for t in range(10):
                + torch.sum(torch.max((1-onehot_label) * outputs - 1000 * onehot_label, dim=1)[0])
         loss.backward(retain_graph=True)
         optimizer.step()
+        # loss_history.append(loss.item())
+        # if iter_idx > 10 and np.mean(np.abs(np.diff(loss_history[-10:]) < 1e-6:
+        #    break
         if abs(last_loss - loss.item())/abs(last_loss)< 1e-5:
             break
         last_loss = loss.item()
