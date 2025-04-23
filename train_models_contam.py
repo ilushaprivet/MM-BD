@@ -74,7 +74,7 @@ image_dtype = trainset.data.dtype
 train_images_attacks = np.rint(np.transpose(train_images_attacks.numpy()*255, [0, 2, 3, 1])).astype(image_dtype)
 trainset.data = np.concatenate((trainset.data, train_images_attacks))
 trainset.targets = np.concatenate((trainset.targets, train_labels_attacks))
-ind_train = torch.load('./' + attack_dir + '/ind_train')
+ind_train = torch.load('./' + attack_dir + '/ind_train', weights_only=False)
 trainset.data = np.delete(trainset.data, ind_train, axis=0)
 trainset.targets = np.delete(trainset.targets, ind_train, axis=0)
 
