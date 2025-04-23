@@ -148,7 +148,7 @@ with torch.no_grad():
         correct += predicted.eq(targets).sum().item()
 
 acc = 100.*correct/total
-print('Test ACC: %.3f' % acc)
+print('Точность на чистых данных: %.3f' % acc)
 
 # Тестирование на атакованных данных
 test_attacks = torch.load('./'+args.attack_dir + '/test_attacks')
@@ -176,6 +176,6 @@ with torch.no_grad():
         #corr += predicted.eq(targets+1).sum().item()
 
 acc = 100.*correct/total
-print('Точность после проведения атаки: %.3f' % acc)
+print('Точность на данных с бэкдором (успешность атаки): %.3f' % acc)
 
 
