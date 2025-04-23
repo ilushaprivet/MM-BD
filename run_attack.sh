@@ -1,6 +1,6 @@
 echo ----------------------------Осуществление бэкдор-атак------------------------------
 
-for((integer = 0; integer <= 9; integer ++))
+for((integer = 0; integer <= 0; integer ++))
 do
   foo1="python3 attacks_crafting.py --out_dir attack$integer"
   $foo1
