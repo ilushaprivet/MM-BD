@@ -68,10 +68,13 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True
 pattern = pattern_craft(trainset.__getitem__(0)[0].size())
 mask = mask_craft(pattern)
 
-# Перебор всех классов, внедрение случайного числа бэкдоров в отдельно взятый класс (SC - истинный класс изображения, TC - целевой)
+# Внедрение случайного числа бэкдоров в отдельно взятый класс (SC - истинный класс изображения, TC - целевой)
 
-for SC in range(10):
-    TC = (SC + 1)%10
+SC = 3
+TC = 9
+
+# for SC in range(10):
+#    TC = (SC + 1)%10
     # Создание обучающих изображений с бэкдорами
     ind_train = [i for i, label in enumerate(trainset.targets) if label==SC]
     ind_train = np.random.choice(ind_train, NUM_OF_ATTACKS, False)
