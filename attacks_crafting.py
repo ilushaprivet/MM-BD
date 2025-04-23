@@ -75,27 +75,27 @@ TC = 9
 
 # for SC in range(10):
 #    TC = (SC + 1)%10
-    # Создание обучающих изображений с бэкдорами
-    ind_train = [i for i, label in enumerate(trainset.targets) if label==SC]
-    ind_train = np.random.choice(ind_train, NUM_OF_ATTACKS, False)
-    for i in ind_train:
-        if train_images_attacks is not None:
-            train_images_attacks = torch.cat([train_images_attacks, embed_backdoor(trainset.__getitem__(i)[0], pattern, mask).unsqueeze(0)], dim=0)
-            train_labels_attacks = torch.cat([train_labels_attacks, torch.tensor([TC], dtype=torch.long)], dim=0)
-        else:
-            train_images_attacks = embed_backdoor(trainset.__getitem__(i)[0], pattern, mask).unsqueeze(0)
-            train_labels_attacks = torch.tensor([TC], dtype=torch.long)
+# Создание обучающих изображений с бэкдорами
+ind_train = [i for i, label in enumerate(trainset.targets) if label==SC]
+ind_train = np.random.choice(ind_train, NUM_OF_ATTACKS, False)
+for i in ind_train:
+    if train_images_attacks is not None:
+        train_images_attacks = torch.cat([train_images_attacks, embed_backdoor(trainset.__getitem__(i)[0], pattern, mask).unsqueeze(0)], dim=0)
+        train_labels_attacks = torch.cat([train_labels_attacks, torch.tensor([TC], dtype=torch.long)], dim=0)
+    else:
+        train_images_attacks = embed_backdoor(trainset.__getitem__(i)[0], pattern, mask).unsqueeze(0)
+        train_labels_attacks = torch.tensor([TC], dtype=torch.long)
 
-    # Создание тестовых изображений с бэкдорами
-    ind_test = [i for i, label in enumerate(testset.targets) if label==SC]
+# Создание тестовых изображений с бэкдорами
+ind_test = [i for i, label in enumerate(testset.targets) if label==SC]
 
-    for i in ind_test:
-        if test_images_attacks is not None:
-            test_images_attacks = torch.cat([test_images_attacks, embed_backdoor(testset.__getitem__(i)[0], pattern, mask).unsqueeze(0)], dim=0)
-            test_labels_attacks = torch.cat([test_labels_attacks, torch.tensor([TC], dtype=torch.long)], dim=0)
-        else:
-            test_images_attacks = embed_backdoor(testset.__getitem__(i)[0], pattern, mask).unsqueeze(0)
-            test_labels_attacks = torch.tensor([TC], dtype=torch.long)
+for i in ind_test:
+    if test_images_attacks is not None:
+        test_images_attacks = torch.cat([test_images_attacks, embed_backdoor(testset.__getitem__(i)[0], pattern, mask).unsqueeze(0)], dim=0)
+        test_labels_attacks = torch.cat([test_labels_attacks, torch.tensor([TC], dtype=torch.long)], dim=0)
+    else:
+        test_images_attacks = embed_backdoor(testset.__getitem__(i)[0], pattern, mask).unsqueeze(0)
+        test_labels_attacks = torch.tensor([TC], dtype=torch.long)
 
 # Сохранение образцов в папку
 if not os.path.isdir(out_dir):
